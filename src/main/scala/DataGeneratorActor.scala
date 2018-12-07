@@ -21,12 +21,29 @@ import scala.util.{Failure, Success}
 */
 case class GenerateDataSeq(reportNumber: Int, startTime: Long)
 case class GenerateDataParallel(reportNumber: Int, startTime: Long)
+case class GenerateDataListSeq(reportNumber: Int, startTime: Long, inputList: Seq[Int])
 class DataGeneratorActor extends Actor {
   implicit val system = context.system
   implicit lazy val timeout = Timeout(5.seconds)
 
   implicit val ec: ExecutionContext = system.dispatcher
   override def receive: Receive = {
+    case message: GenerateDataListSeq => {
+      val initSeq = Seq[Future[Data1Obj]]()
+
+      val resSeq = message.inputList.foldLeft(initSeq)((acc, item) => {
+        val data1Actor = context.actorOf(Props(new Data1Actor(message.reportNumber)))
+        val data1ObjFuture: Future[Data1Obj] = (data1Actor ? GetData1()).mapTo[Data1Obj]
+        acc:+data1ObjFuture
+      })
+
+      val all = Future.sequence(resSeq)
+      all.onComplete {
+        case Success(res) => println("Success "+res)
+        case Failure(ex) => println("Failure "+ex)
+      }
+    }
+
     case message: GenerateDataSeq => {
       val data1Actor = context.actorOf(Props(new Data1Actor(message.reportNumber)))
       val data1ObjFuture: Future[Data1Obj] = (data1Actor ? GetData1()).mapTo[Data1Obj]

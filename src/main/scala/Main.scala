@@ -40,9 +40,10 @@ object Main extends App {
 
   val startTime = time
   val dataGActor = system.actorOf(Props(new DataGeneratorActor()), name = "dataGeneratorActor")
+  dataGActor ! GenerateDataListSeq(1, startTime, Seq(1,2,3))
   //GenerateDataSeq want actor response to come in sequence
-  dataGActor ! GenerateDataSeq(1, startTime)
-  dataGActor ! GenerateDataSeq(2, startTime)
+  //dataGActor ! GenerateDataSeq(1, startTime)
+  //dataGActor ! GenerateDataSeq(2, startTime)
   //GenerateDataParallel can have actor work in parallel, order doesn't matter
   //dataGActor ! GenerateDataParallel(1, startTime)
   //dataGActor ! GenerateDataParallel(2, startTime)

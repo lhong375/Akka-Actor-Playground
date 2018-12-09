@@ -1,0 +1,91 @@
+implicit class FutureCompanionOps(val f: Future.type) extends AnyVal {
+
+    /** Given a list of futures `fs`, returns the future holding the list of Try's of the futures from `fs`.
+      * The returned future is completed only once all of the futures in `fs` have been completed.
+      */
+    def allAsTrys[T](fItems: /* future items */ List[Future[T]]): Future[List[Try[T]]] = {
+      val listOfFutureTrys: List[Future[Try[T]]] = fItems.map(futureToFutureTry)
+      Future.sequence(listOfFutureTrys)
+    }
+
+    def futureToFutureTry[T](f: Future[T]): Future[Try[T]] = {
+      f.map(Success(_)) .recover({case x => Failure(x)})
+    }
+
+    def allFailedAsTrys[T](fItems: /* future items */ List[Future[T]]): Future[List[Try[T]]] = {
+      allAsTrys(fItems).map(_.filter(_.isFailure))
+    }
+
+    def allSucceededAsTrys[T](fItems: /* future items */ List[Future[T]]): Future[List[Try[T]]] = {
+      allAsTrys(fItems).map(_.filter(_.isSuccess))
+    }
+}
+
+
+// Tests...
+
+
+
+  // allAsTrys tests
+  //
+  test("futureToFutureTry returns Success if no exception") {
+    val future =  Future.futureToFutureTry(Future{"mouse"})
+    Thread.sleep(0, 100)
+    val futureValue = future.value
+    assert(futureValue == Some(Success(Success("mouse"))))
+  }
+  test("futureToFutureTry returns Failure if exception thrown") {
+    val future =  Future.futureToFutureTry(Future{throw new IllegalStateException("bad news")})
+    Thread.sleep(5)            // need to sleep a LOT longer to get Exception from failure case... interesting.....
+    val futureValue = future.value
+
+    assertResult(true) {
+      futureValue match {
+        case Some(Success(Failure(error: IllegalStateException)))  => true
+      }
+    }
+  }
+  test("Future.allAsTrys returns Nil given Nil list as input") {
+    val future =  Future.allAsTrys(Nil)
+    assert ( Await.result(future, 100 nanosecond).isEmpty )
+  }
+  test("Future.allAsTrys returns successful item even if preceded by failing item") {
+    val future1 =  Future{throw new IllegalStateException("bad news")}
+    var future2 = Future{"dog"}
+
+    val futureListOfTrys =  Future.allAsTrys(List(future1,future2))
+    val listOfTrys =  Await.result(futureListOfTrys, 10 milli)
+    System.out.println("successItem:" + listOfTrys);
+
+    assert(listOfTrys(0).failed.get.getMessage.contains("bad news"))
+    assert(listOfTrys(1) == Success("dog"))
+  }
+  test("Future.allAsTrys returns successful item even if followed by failing item") {
+    var future1 = Future{"dog"}
+    val future2 =  Future{throw new IllegalStateException("bad news")}
+
+    val futureListOfTrys =  Future.allAsTrys(List(future1,future2))
+    val listOfTrys =  Await.result(futureListOfTrys,  10 milli)
+    System.out.println("successItem:" + listOfTrys);
+
+    assert(listOfTrys(1).failed.get.getMessage.contains("bad news"))
+    assert(listOfTrys(0) == Success("dog"))
+  }
+  test("Future.allFailedAsTrys returns the failed item and only that item") {
+    var future1 = Future{"dog"}
+    val future2 =  Future{throw new IllegalStateException("bad news")}
+
+    val futureListOfTrys =  Future.allFailedAsTrys(List(future1,future2))
+    val listOfTrys =  Await.result(futureListOfTrys,  10 milli)
+    assert(listOfTrys(0).failed.get.getMessage.contains("bad news"))
+    assert(listOfTrys.size == 1)
+  }
+  test("Future.allSucceededAsTrys returns the succeeded item and only that item") {
+    var future1 = Future{"dog"}
+    val future2 =  Future{throw new IllegalStateException("bad news")}
+
+    val futureListOfTrys =  Future.allSucceededAsTrys(List(future1,future2))
+    val listOfTrys =  Await.result(futureListOfTrys,  10 milli)
+    assert(listOfTrys(0) == Success("dog"))
+    assert(listOfTrys.size == 1)
+  }

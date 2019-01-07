@@ -40,7 +40,13 @@ object Main extends App {
 
   val startTime = time
   val dataGActor = system.actorOf(Props(new DataGeneratorActor()), name = "dataGeneratorActor")
-  dataGActor ! GenerateDataListSeq(1, startTime, Seq(1,2,3))
+
+  val resList = dataGActor ? GenerateDataListSeq(1, startTime, Seq(1,2,3))
+  resList.onComplete {
+    case Success(x) =>
+      println("##### GenerateDataListSeq Success with res:"+x)
+  }
+
   //GenerateDataSeq want actor response to come in sequence
   //dataGActor ! GenerateDataSeq(1, startTime)
   //dataGActor ! GenerateDataSeq(2, startTime)

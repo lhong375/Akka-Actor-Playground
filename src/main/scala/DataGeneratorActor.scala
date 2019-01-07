@@ -36,11 +36,14 @@ class DataGeneratorActor extends Actor {
         val data1ObjFuture: Future[Data1Obj] = (data1Actor ? GetData1()).mapTo[Data1Obj]
         acc:+data1ObjFuture
       })
-
+      val originalSender = sender()
       val all = Future.sequence(resSeq)
       all.onComplete {
-        case Success(res) => println("Success "+res)
-        case Failure(ex) => println("Failure "+ex)
+        case Success(res) =>
+          println("DataGeneratorActor GenerateDataListSeq Success "+res)
+          originalSender ! res
+        case Failure(ex) =>
+          println("DataGeneratorActor GenerateDataListSeq Failure "+ex)
       }
     }
 

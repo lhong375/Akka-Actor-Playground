@@ -1,13 +1,17 @@
 # Akka-Actor-Playground
 
-## Run
-`sbt run`
+## Error Hanlding
+`sbt "runMain akka.actor.playground.exception.Main_exception"``
 
-## DataGeneratorActor
+## Response assemble examples
+### Run
+`sbt "runMain akka.actor.playground.Main"`
+
+### DataGeneratorActor
 is my first try to assemble responds from actors. It use `ask` then `.mapTo`.
 
-## ReportGeneratorActor
+### ReportGeneratorActor
 is a new way I'm trying. It creates a *DedicatedActor*, hand the job to it. I think we have more control over types, and error messages are better this way.
 
-## DedicatedActor
+### DedicatedActor
 is like a state machine.

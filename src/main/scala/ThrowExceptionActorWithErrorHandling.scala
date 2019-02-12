@@ -26,8 +26,15 @@ class ThrowExceptionActorWithErrorHandling extends FailurePropatingActor {
         lst(5)
       }
       fut.to(self, sender())
+    case tef: ThrowExceptionFromFuture2 =>
+        val originalSender = sender()
+        val fut = Future {
+          val lst = List(1,2,3)
+          originalSender ! lst(5)
+        }
+        fut.to(self)
     case Status.Failure(ex) =>
-      println("Handle the exception myself!");
+      println("Handle the exception myself!", ex);
       throw ex
   }
 }

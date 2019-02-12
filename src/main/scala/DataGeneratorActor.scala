@@ -1,7 +1,7 @@
 package akka.actor.playground
 import akka.actor._
 import scala.concurrent.{ ExecutionContext, Future }
-import akka.pattern.ask
+import akka.pattern.{ ask, pipe }
 
 import akka.{Done, NotUsed}
 import akka.actor.ActorSystem
@@ -20,6 +20,7 @@ import scala.util.{Failure, Success}
   GenerateDataParallel: will call Data1Actor and Data3Actor, in parallel, then call MergeActor to collect response from those 2
 */
 case class GenerateDataSeq(reportNumber: Int, startTime: Long)
+case class GenerateDataSeq2(reportNumber: Int, startTime: Long)
 case class GenerateDataParallel(reportNumber: Int, startTime: Long)
 case class GenerateDataListSeq(reportNumber: Int, startTime: Long, inputList: Seq[Int])
 class DataGeneratorActor extends Actor {
@@ -65,8 +66,26 @@ class DataGeneratorActor extends Actor {
           )
         case Failure(e) => e.printStackTrace
       }
-      //sender() ! anyFuture
-      //anyFuture.pipeTo(sender())
+    }
+    case message: GenerateDataSeq2 => {
+        val originalSender = sender()
+        val data1Actor = context.actorOf(Props(new Data1Actor(message.reportNumber)))
+        val data2Actor = context.actorOf(Props(new Data2Actor(message.reportNumber)))
+        val result = for {
+        data1Obj <- (data1Actor ? GetData1()).mapTo[Data1Obj]
+        data2Obj <- data2Actor ? GetData2(data1Obj)
+        } yield data2Obj
+
+        result.recover{
+          case exp:Exception =>
+            println("got Exception", exp)
+            Future.failed(exp).pipeTo(originalSender)
+          case otherExp =>
+            println("got Other Exception", otherExp)
+            Future.failed(otherExp).pipeTo(originalSender)
+        }
+
+        result.pipeTo(originalSender)
     }
     case message: GenerateDataParallel => {
       val data1Actor = context.actorOf(Props(new Data1Actor(message.reportNumber)))

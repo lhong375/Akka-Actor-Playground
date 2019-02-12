@@ -17,6 +17,7 @@ import scala.util.{Failure, Success}
 case class ThrowException()
 case class ThrowExceptionFromFuture()
 case class PipeBackExceptionFromFuture()
+case class ThrowExceptionFromFuture2()
 
 object Main_exception extends App {
 
@@ -33,7 +34,7 @@ object Main_exception extends App {
   // >>>>>>>>>> Actor that throws exception with proper error handling >>>>>>>>>>
   val throwExceptionActorWithErrorHandling = system.actorOf(Props(new ThrowExceptionActorWithErrorHandling()), name = "throwExceptionActorWithErrorHandling")
 
-  
+/*
   // ++++++++++ Throw Exception directly from Actor ++++++++++
   // This will timeout (you will see the exception trace on the console though)
   val res1 = throwExceptionActor ? ThrowException()
@@ -42,7 +43,7 @@ object Main_exception extends App {
     case Failure(ex) => println("throwExceptionActor.ThrowException return Failure: "+ex)
   }
 
-  /*
+
   // ++++++++++ Throw Exception from a Future called by Actor ++++++++++
   // This will just timeout (you don't even see any exception at all)
   val res2 = throwExceptionActor ? ThrowExceptionFromFuture()
@@ -79,6 +80,13 @@ object Main_exception extends App {
   }
 
 */
+
+// ++++++++++ Throw Exception from a Future called by Actor ++++++++++
+val res6 = throwExceptionActorWithErrorHandling ? ThrowExceptionFromFuture2()
+res6.onComplete {
+  case Success(x) => println("throwExceptionActorWithErrorHandling.ThrowExceptionFromFuture2 return Success")
+  case Failure(ex) => println("throwExceptionActorWithErrorHandling.ThrowExceptionFromFuture2 return Failure: "+ex)
+}
 
 
 }

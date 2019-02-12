@@ -15,12 +15,12 @@ import scala.util.{Failure, Success}
 
 
 case class GetData1()
-case class GetData2(data1: Data1Obj)
+
 case class GetData3()
 case class GetMergedData(data1: Data1Obj, data3: Data3Obj)
 
 case class Data1Obj(count: Int)
-case class Data2Obj(count: Int)
+
 case class Data3Obj(count: Int)
 case class MergedDataObj(count: Int)
 
@@ -41,15 +41,24 @@ object Main extends App {
   val startTime = time
   val dataGActor = system.actorOf(Props(new DataGeneratorActor()), name = "dataGeneratorActor")
 
-  val resList = dataGActor ? GenerateDataListSeq(1, startTime, Seq(1,2,3))
-  resList.onComplete {
-    case Success(x) =>
-      println("##### GenerateDataListSeq Success with res:"+x)
-  }
+//  val resList = dataGActor ? GenerateDataListSeq(1, startTime, Seq(1,2,3))
+//  resList.onComplete {
+//    case Success(x) =>
+//      println("##### GenerateDataListSeq Success with res:"+x)
+//  }
 
   //GenerateDataSeq want actor response to come in sequence
   //dataGActor ! GenerateDataSeq(1, startTime)
   //dataGActor ! GenerateDataSeq(2, startTime)
+
+  val res = dataGActor ? GenerateDataSeq2(1, startTime)
+  val data2ObjFuture: Future[Data2Obj] = res.mapTo[Data2Obj]
+  data2ObjFuture.onComplete {
+    case Success(data2obj) =>
+      println("DataGeneratorActor GenerateDataSeq res="+data2obj)
+    case Failure(e) => e.printStackTrace
+  }
+
   //GenerateDataParallel can have actor work in parallel, order doesn't matter
   //dataGActor ! GenerateDataParallel(1, startTime)
   //dataGActor ! GenerateDataParallel(2, startTime)

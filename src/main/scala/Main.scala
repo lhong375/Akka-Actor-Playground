@@ -47,9 +47,8 @@ object Main extends App {
 //      println("##### GenerateDataListSeq Success with res:"+x)
 //  }
 
-  //GenerateDataSeq want actor response to come in sequence
-  //dataGActor ! GenerateDataSeq(1, startTime)
-  //dataGActor ! GenerateDataSeq(2, startTime)
+  //Actor response get assembled in seq
+  dataGActor ! GenerateDataSeq(1, startTime)
 
 //  val res = dataGActor ? GenerateDataSeq2(1, startTime)
 //  val data2ObjFuture: Future[Data2Obj] = res.mapTo[Data2Obj]
@@ -60,7 +59,7 @@ object Main extends App {
 //  }
 
   //merge response of actors in a parallel way
-  dataGActor ! GenerateDataParallel(1, startTime)
+  //dataGActor ! GenerateDataParallel(1, startTime)
 
 
 /*

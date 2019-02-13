@@ -55,18 +55,26 @@ class DataGeneratorActor extends Actor {
       val data1ObjFuture: Future[Data1Obj] = (data1Actor ? GetData1()).mapTo[Data1Obj]
 
       val data2Actor = context.actorOf(Props(new Data2Actor(message.reportNumber, None)))
-      val anyFuture = for {
-        data1Obj <- data1ObjFuture
-      } yield data2Actor ? GetData2(data1Obj)
 
-      anyFuture.onComplete {
+      val originalSender = sender()
+      val anyFuture = data1ObjFuture.onComplete{
         case Success(x) =>
-          println("DataGeneratorActor GenerateDataSeq inside Success, but we are not done yet")
-          x.mapTo[Data2Obj].map(data2obj =>
-            println("DataGeneratorActor GenerateDataSeq res="+data2obj+" reportNumber="+message.reportNumber+", delta="+(System.currentTimeMillis-message.startTime))
-          )
+          val data2ObjFuture = data2Actor ? GetData2(x)
+          data2ObjFuture.pipeTo(originalSender)
         case Failure(e) => e.printStackTrace
       }
+//      val anyFuture = for {
+//        data1Obj <- data1ObjFuture
+//      } yield data2Actor ? GetData2(data1Obj)
+
+//      anyFuture.onComplete {
+//        case Success(x) =>
+//          println("DataGeneratorActor GenerateDataSeq inside Success, but we are not done yet")
+//          x.mapTo[Data2Obj].map(data2obj =>
+//            println("DataGeneratorActor GenerateDataSeq res="+data2obj+" reportNumber="+message.reportNumber+", delta="+(System.currentTimeMillis-message.startTime))
+//          )
+//        case Failure(e) => e.printStackTrace
+//      }
     }
     case message: GenerateDataSeq2 => {
         val originalSender = sender()

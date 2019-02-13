@@ -24,8 +24,8 @@ class ReportGeneratorActor(implicit val ec: ExecutionContext) extends Actor {
   override def receive: Receive = {
     case message: GenerateReport =>
 
-      val data1Actor = context.actorOf(Props(new Data1Actor(message.reportNumber)))
-      val data3Actor = context.actorOf(Props(new Data3Actor(message.reportNumber)))
+      val data1Actor = context.actorOf(Props(new Data1Actor(message.reportNumber, None)))
+      val data3Actor = context.actorOf(Props(new Data3Actor(message.reportNumber, None)))
       val mergeDataActor = context.actorOf(Props(new MergeActor(message.reportNumber)))
       val dedicatedActor = context.actorOf(Props(new DedicatedActor(sender, mergeDataActor)(ec)))
       data1Actor.tell(GetData1(), dedicatedActor)

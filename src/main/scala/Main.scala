@@ -51,17 +51,16 @@ object Main extends App {
   //dataGActor ! GenerateDataSeq(1, startTime)
   //dataGActor ! GenerateDataSeq(2, startTime)
 
-  val res = dataGActor ? GenerateDataSeq2(1, startTime)
-  val data2ObjFuture: Future[Data2Obj] = res.mapTo[Data2Obj]
-  data2ObjFuture.onComplete {
-    case Success(data2obj) =>
-      println("DataGeneratorActor GenerateDataSeq res="+data2obj)
-    case Failure(e) => e.printStackTrace
-  }
+//  val res = dataGActor ? GenerateDataSeq2(1, startTime)
+//  val data2ObjFuture: Future[Data2Obj] = res.mapTo[Data2Obj]
+//  data2ObjFuture.onComplete {
+//    case Success(data2obj) =>
+//      println("DataGeneratorActor GenerateDataSeq res="+data2obj)
+//    case Failure(e) => e.printStackTrace
+//  }
 
-  //GenerateDataParallel can have actor work in parallel, order doesn't matter
-  //dataGActor ! GenerateDataParallel(1, startTime)
-  //dataGActor ! GenerateDataParallel(2, startTime)
+  //merge response of actors in a parallel way
+  dataGActor ! GenerateDataParallel(1, startTime)
 
 
 /*

@@ -13,17 +13,22 @@ import scala.concurrent.duration._
 import akka.util.Timeout
 import scala.util.{Failure, Success}
 
-//take a Int(reportNumber) to create this actor, expect message GetData3, sleep 250, return obj Data3Obj
-class Data3Actor(reportNumber: Int) extends Actor {
+//take a Int(reportNumber) and a sleepTime(optional) to create this actor, expect message GetData3, sleep 250, return obj Data3Obj
+class Data3Actor(reportNumber: Int, sleepTime: Option[Int]) extends Actor {
   implicit val system = context.system
 
   implicit val ec: ExecutionContext = system.dispatcher
   var count_Data3 = 0
   def incrementAndPrint { count_Data3 += 1000; /*println(" ===== Data3#"+count_Data3)*/ }
   def receive = {
-    case message: GetData3 =>
+    case _: GetData3 =>
         println(" ===== GetData3 Start #"+reportNumber)
-        sleep(250)
+        sleepTime match {
+          case Some(time) =>
+            println("GetData3 #"+reportNumber+" sleep "+time)
+            sleep(time)
+          case None => ()
+        }
         incrementAndPrint
         val res:Data3Obj =  new Data3Obj(count_Data3)
         println(" ===== GetData3 End, report#"+reportNumber+", return count_Data3="+count_Data3)

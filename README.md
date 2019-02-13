@@ -4,7 +4,6 @@
 `sbt "runMain akka.actor.playground.exception.Main_exception"``
 
 ## Response assemble examples
-### Run
 `sbt "runMain akka.actor.playground.Main"`
 
 ### DataGeneratorActor

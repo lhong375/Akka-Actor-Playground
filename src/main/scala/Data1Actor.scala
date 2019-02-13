@@ -14,7 +14,7 @@ import akka.util.Timeout
 import scala.util.{Failure, Success}
 
 //receive message GetData1, return obj Data1Obj
-class Data1Actor(reportNumber: Int) extends Actor {
+class Data1Actor(reportNumber: Int, sleepTime: Option[Int]) extends Actor {
   implicit val system = context.system
 
   implicit val ec: ExecutionContext = system.dispatcher
@@ -23,7 +23,12 @@ class Data1Actor(reportNumber: Int) extends Actor {
   def receive = {
     case message: GetData1 =>
         println(" ***** GetData1 Start, report#"+reportNumber)
-        sleep(500)
+        sleepTime match {
+          case Some(time) =>
+            println("GetData1 #"+reportNumber+"sleep "+time)
+            sleep(time)
+          case None => ()
+        }
         incrementAndPrint
         val res =  new Data1Obj(count_Data1)
         println(" ***** GetData1 End, report#"+reportNumber+", return count_Data1="+count_Data1)
